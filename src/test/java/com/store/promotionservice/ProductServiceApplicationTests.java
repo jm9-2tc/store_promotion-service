@@ -4,6 +4,7 @@ package com.store.promotionservice;
 import com.store.promotionservice.model.dto.PromotionDto;
 import com.store.promotionservice.model.mappers.PromotionMapper;
 import com.store.promotionservice.model.request.CalculateDiscountRequest;
+import com.store.promotionservice.model.response.CalculateDiscountResponse;
 import com.store.promotionservice.mothers.CalculateDiscountRequestMother;
 import com.store.promotionservice.mothers.PromotionMother;
 
@@ -23,9 +24,13 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -91,14 +96,13 @@ class ProductServiceApplicationTests {
             PromotionDto promotion = PromotionMother.getValidExample1();
             long id = promotionRepository.save(PromotionMapper.mapToEntity(promotion)).getId();
 
-            mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions/" + id))
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions/" + id))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", is(promotion)));
+                    .andReturn();
 
-            /*
-            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions/1")).andExpect(status().isOk()).andReturn();
             PromotionDto response = objectMapper.readValue(result.getResponse().getContentAsString(), PromotionDto.class);
-            assertThat(response).isNotNull();*/
+
+            assertThat(response).isEqualTo(promotion);
         }
 
         @Test
@@ -110,9 +114,14 @@ class ProductServiceApplicationTests {
             promotionRepository.save(PromotionMapper.mapToEntity(promotion1));
             promotionRepository.save(PromotionMapper.mapToEntity(promotion2));
 
-            mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions"))
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(2)));
+                    .andExpect(jsonPath("$", hasSize(2)))
+                    .andReturn();
+
+            PromotionDto[] response = objectMapper.readValue(result.getResponse().getContentAsString(), PromotionDto[].class);
+
+            assertThat(response).containsExactly(promotion1, promotion2);
         }
 
         // UPDATE:
@@ -163,13 +172,36 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can calculate discount")
         void shouldCalculateDiscount() throws Exception {
-            String requestJson = objectMapper.writeValueAsString(CalculateDiscountRequestMother.getValidExample(true, "11111"));
+            PromotionDto promotion1 = PromotionMother.getValidExample1();
+            PromotionDto promotion2 = PromotionMother.getValidExample2();
+            PromotionDto promotion3 = PromotionMother.getValidExample3();
+            PromotionDto promotion4 = PromotionMother.getValidExample4();
 
-            String promotionJson = objectMapper.writeValueAsString(PromotionMother.getValidExample1());
-            mockMvc.perform(MockMvcRequestBuilders.post("/api/promotions")
+            promotionRepository.save(PromotionMapper.mapToEntity(promotion1));
+            promotionRepository.save(PromotionMapper.mapToEntity(promotion2));
+            promotionRepository.save(PromotionMapper.mapToEntity(promotion3));
+            promotionRepository.save(PromotionMapper.mapToEntity(promotion4));
+
+            List<CalculateDiscountResponse.DiscountData> discountsData = new ArrayList<>(5);
+            discountsData.add(new CalculateDiscountResponse.DiscountData(1L, BigDecimal.valueOf(5.0f).setScale(2, RoundingMode.HALF_UP), 1L));
+            discountsData.add(new CalculateDiscountResponse.DiscountData(2L, BigDecimal.valueOf(1.0f).setScale(2, RoundingMode.HALF_UP), 2L));
+            discountsData.add(new CalculateDiscountResponse.DiscountData(3L, BigDecimal.valueOf(0.2f).setScale(2, RoundingMode.HALF_UP), 2L));
+            discountsData.add(new CalculateDiscountResponse.DiscountData(4L, BigDecimal.valueOf(9.6).setScale(2, RoundingMode.HALF_UP), 4L));
+            discountsData.add(new CalculateDiscountResponse.DiscountData(5L, BigDecimal.valueOf(0.0f).setScale(2, RoundingMode.HALF_UP), null));
+            CalculateDiscountResponse expectedResponse = new CalculateDiscountResponse(discountsData);
+
+            CalculateDiscountRequest request = CalculateDiscountRequestMother.getValidExample(true, "11111");
+            String requestJson = objectMapper.writeValueAsString(request);
+
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/promotions/calculate-discount")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(promotionJson)
-            ).andExpect(status().isCreated());
+                    .content(requestJson)
+            ).andExpect(status().isOk()).andReturn();
+
+            CalculateDiscountResponse response = objectMapper.readValue(result.getResponse().getContentAsString(), CalculateDiscountResponse.class);
+            assertThat(response).isEqualTo(expectedResponse);
+
+            System.out.println(result.getResponse().getContentAsString());
         }
     }
 

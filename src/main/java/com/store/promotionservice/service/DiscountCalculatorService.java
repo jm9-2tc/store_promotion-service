@@ -4,19 +4,17 @@ import com.store.promotionservice.model.entity.PromotionEntity;
 import com.store.promotionservice.model.request.CalculateDiscountRequest;
 import com.store.promotionservice.model.response.CalculateDiscountResponse;
 import com.store.promotionservice.repository.PromotionRepository;
+import com.store.promotionservice.utils.Wrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.math.RoundingMode;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class DiscountCalculatorService {
-
     private final PromotionRepository repository;
 
     public CalculateDiscountResponse calculate(CalculateDiscountRequest request) {
@@ -83,11 +81,15 @@ public class DiscountCalculatorService {
         for (CalculateDiscountRequest.ProductInfo product : products) {
             BigDecimal worth = product.getPrice().multiply(BigDecimal.valueOf(product.getQuantity()));
             BigDecimal biggestDiscount = BigDecimal.ZERO;
+            Wrapper<Long> id = new Wrapper<>(null);
 
-            biggestDiscount = findBiggestDiscount(biggestDiscount, worth, productsDataMap.get(product.getId()).promotions);
-            biggestDiscount = findBiggestDiscount(biggestDiscount, worth, categoriesDataMap.get(product.getCategoryId()).promotions);
+            biggestDiscount = findBiggestDiscount(biggestDiscount, worth, productsDataMap.get(product.getId()).promotions, id);
+            biggestDiscount = findBiggestDiscount(biggestDiscount, worth, categoriesDataMap.get(product.getCategoryId()).promotions, id);
 
-            discounts.add(new CalculateDiscountResponse.DiscountData(product.getId(), biggestDiscount));
+            biggestDiscount = biggestDiscount.max(BigDecimal.ZERO);
+            biggestDiscount = biggestDiscount.setScale(2, RoundingMode.HALF_UP);
+
+            discounts.add(new CalculateDiscountResponse.DiscountData(product.getId(), biggestDiscount, id.value));
         }
 
         CalculateDiscountResponse response = new CalculateDiscountResponse();
@@ -96,7 +98,7 @@ public class DiscountCalculatorService {
         return response;
     }
 
-    private static BigDecimal findBiggestDiscount(BigDecimal biggestDiscount, BigDecimal worth, List<ValidatedPromotion> categoryPromotions) {
+    private static BigDecimal findBiggestDiscount(BigDecimal biggestDiscount, BigDecimal worth, List<ValidatedPromotion> categoryPromotions, Wrapper<Long> id) {
         for (ValidatedPromotion validatedPromotion : categoryPromotions) {
             if (!validatedPromotion.valid)
                 continue;
@@ -111,6 +113,7 @@ public class DiscountCalculatorService {
 
             if (discount != null && discount.compareTo(biggestDiscount) > 0) {
                 biggestDiscount = discount;
+                id.value = validatedPromotion.promotion.getId();
             }
         }
         return biggestDiscount;
