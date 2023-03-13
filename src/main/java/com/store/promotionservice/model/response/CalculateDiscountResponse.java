@@ -25,8 +25,8 @@ public class CalculateDiscountResponse {
         @JsonProperty("product_id")
         private Long productId;
 
-        @JsonProperty("discount")
-        private BigDecimal discount;
+        @JsonProperty("discount_worth")
+        private BigDecimal discountWorth;
 
         @JsonProperty("promotion_id")
         private Long promotionId;
