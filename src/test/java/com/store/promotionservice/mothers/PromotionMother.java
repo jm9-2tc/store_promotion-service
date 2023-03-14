@@ -7,7 +7,7 @@ import java.util.Collections;
 
 public class PromotionMother {
 
-    public static PromotionDto getValidExample1() {
+    public static PromotionDto getExample1() {
         return new PromotionDto(
                 "promo 1",
                 true,
@@ -20,7 +20,7 @@ public class PromotionMother {
         );
     }
 
-    public static PromotionDto getValidExample2() {
+    public static PromotionDto getExample2() {
         return new PromotionDto(
                 "promo 2",
                 false,
@@ -33,7 +33,7 @@ public class PromotionMother {
         );
     }
 
-    public static PromotionDto getValidExample3() {
+    public static PromotionDto getExample3() {
         return new PromotionDto(
                 "promo 3",
                 false,
@@ -46,7 +46,7 @@ public class PromotionMother {
         );
     }
 
-    public static PromotionDto getValidExample4() {
+    public static PromotionDto getExample4() {
         return new PromotionDto(
                 "promo 4",
                 true,

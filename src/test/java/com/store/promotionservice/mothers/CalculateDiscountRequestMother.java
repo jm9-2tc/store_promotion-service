@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CalculateDiscountRequestMother {
-    public static CalculateDiscountRequest getValidExample(boolean hasCard, String promotionCode) {
+    public static CalculateDiscountRequest getExample(boolean hasCard, String promotionCode) {
         List<CalculateDiscountRequest.ProductInfo> products = new ArrayList<>(4);
 
         products.add(new CalculateDiscountRequest.ProductInfo(1L, 1, 2, BigDecimal.valueOf(5.5f)));

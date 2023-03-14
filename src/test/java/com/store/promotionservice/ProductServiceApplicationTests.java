@@ -1,13 +1,17 @@
 package com.store.promotionservice;
 
 
+import com.store.promotionservice.model.dto.ClubCardDto;
 import com.store.promotionservice.model.dto.PromotionDto;
+import com.store.promotionservice.model.mappers.ClubCardMapper;
 import com.store.promotionservice.model.mappers.PromotionMapper;
 import com.store.promotionservice.model.request.CalculateDiscountRequest;
 import com.store.promotionservice.model.response.CalculateDiscountResponse;
 import com.store.promotionservice.mothers.CalculateDiscountRequestMother;
+import com.store.promotionservice.mothers.ClubCardMother;
 import com.store.promotionservice.mothers.PromotionMother;
 
+import com.store.promotionservice.repository.ClubCardRepository;
 import com.store.promotionservice.repository.PromotionRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @AutoConfigureMockMvc
 class ProductServiceApplicationTests {
-
     @Container
     private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
-
 
     @Autowired
     private MockMvc mockMvc;
@@ -51,6 +53,9 @@ class ProductServiceApplicationTests {
 
     @Autowired
     private PromotionRepository promotionRepository;
+
+    @Autowired
+    private ClubCardRepository clubCardRepository;
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry propertyRegistry) {
@@ -63,15 +68,15 @@ class ProductServiceApplicationTests {
     }
 
     @Nested
-    @DisplayName("CRUD tests")
-    class CrudTests {
+    @DisplayName("Promotions CRUD tests")
+    class PromotionsCrudTests {
 
         // CREATE:
 
         @Test
         @DisplayName("Can create promotion")
         void shouldCreatePromotion() throws Exception {
-            String promotionJson = objectMapper.writeValueAsString(PromotionMother.getValidExample1());
+            String promotionJson = objectMapper.writeValueAsString(PromotionMother.getExample1());
             mockMvc.perform(MockMvcRequestBuilders.post("/api/promotions")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(promotionJson)
@@ -93,7 +98,7 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can get promotion")
         void shouldGetPromotion() throws Exception {
-            PromotionDto promotion = PromotionMother.getValidExample1();
+            PromotionDto promotion = PromotionMother.getExample1();
             long id = promotionRepository.save(PromotionMapper.mapToEntity(promotion)).getId();
 
             MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/promotions/" + id))
@@ -108,8 +113,8 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can get all promotions")
         void shouldGetAllPromotions() throws Exception {
-            PromotionDto promotion1 = PromotionMother.getValidExample1();
-            PromotionDto promotion2 = PromotionMother.getValidExample2();
+            PromotionDto promotion1 = PromotionMother.getExample1();
+            PromotionDto promotion2 = PromotionMother.getExample2();
 
             promotionRepository.save(PromotionMapper.mapToEntity(promotion1));
             promotionRepository.save(PromotionMapper.mapToEntity(promotion2));
@@ -129,12 +134,12 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can update promotion")
         void shouldUpdatePromotion() throws Exception {
-            PromotionDto promotion = PromotionMother.getValidExample1();
-            promotionRepository.save(PromotionMapper.mapToEntity(promotion));
+            PromotionDto promotion = PromotionMother.getExample1();
+            long id = promotionRepository.save(PromotionMapper.mapToEntity(promotion)).getId();
 
             String promotionJson = objectMapper.writeValueAsString(promotion);
 
-            mockMvc.perform(MockMvcRequestBuilders.put("/api/promotions/1")
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/promotions/" + id)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(promotionJson)
             ).andExpect(status().isOk());
@@ -143,7 +148,7 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Reports error when updating promotion from missing data")
         void shouldNotUpdatePromotionFromMissingData() throws Exception {
-            PromotionDto promotion = PromotionMother.getValidExample1();
+            PromotionDto promotion = PromotionMother.getExample1();
             long id = promotionRepository.save(PromotionMapper.mapToEntity(promotion)).getId();
 
             String promotionJson = objectMapper.writeValueAsString(PromotionMother.getInvalidExample());
@@ -159,10 +164,114 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can delete promotion")
         void shouldDeletePromotion() throws Exception {
-            PromotionDto promotion = PromotionMother.getValidExample1();
+            PromotionDto promotion = PromotionMother.getExample1();
             promotionRepository.save(PromotionMapper.mapToEntity(promotion));
 
             mockMvc.perform(MockMvcRequestBuilders.delete("/api/promotions/1")).andExpect(status().isOk());
+        }
+    }
+
+    @Nested
+    @DisplayName("Club Cards CRUD tests")
+    class ClubCardsCrudTests {
+
+        // CREATE:
+
+        @Test
+        @DisplayName("Can create club card")
+        void shouldCreateClubCard() throws Exception {
+            String clubCardJson = objectMapper.writeValueAsString(ClubCardMother.getExample1());
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/club-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(clubCardJson)
+            ).andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("Reports error when creating club card from missing data")
+        void shouldNotCreateClubCardFromMissingData() throws Exception {
+            String clubCardJson = objectMapper.writeValueAsString(ClubCardMother.getInvalidExample());
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/club-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(clubCardJson)
+            ).andExpect(status().isBadRequest());
+        }
+
+        // READ:
+
+        @Test
+        @DisplayName("Can get club card")
+        void shouldGetClubCard() throws Exception {
+            ClubCardDto clubCard = ClubCardMother.getExample1();
+            long id = clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard)).getId();
+
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/club-cards/" + id))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            ClubCardDto response = objectMapper.readValue(result.getResponse().getContentAsString(), ClubCardDto.class);
+
+            assertThat(response).isEqualTo(clubCard);
+        }
+
+        @Test
+        @DisplayName("Can get all club cards")
+        void shouldGetAllClubCards() throws Exception {
+            ClubCardDto clubCard1 = ClubCardMother.getExample1();
+            ClubCardDto clubCard2 = ClubCardMother.getExample2();
+
+            clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard1));
+            clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard2));
+
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/club-cards"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)))
+                    .andReturn();
+
+            ClubCardDto[] response = objectMapper.readValue(result.getResponse().getContentAsString(), ClubCardDto[].class);
+
+            assertThat(response).containsExactly(clubCard1, clubCard2);
+        }
+
+        // UPDATE:
+
+        @Test
+        @DisplayName("Can update club card")
+        void shouldUpdateClubCard() throws Exception {
+            ClubCardDto clubCard = ClubCardMother.getExample1();
+            clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard));
+
+            String clubCardJson = objectMapper.writeValueAsString(clubCard);
+
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/club-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(clubCardJson)
+            ).andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Reports error when updating club card from missing data")
+        void shouldNotUpdateClubCardFromMissingData() throws Exception {
+            ClubCardDto clubCard = ClubCardMother.getExample1();
+            clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard));
+
+            String clubCardJson = objectMapper.writeValueAsString(ClubCardMother.getInvalidExample());
+
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/club-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(clubCardJson)
+            ).andExpect(status().isBadRequest());
+        }
+
+        // DELETE:
+
+        @Test
+        @DisplayName("Can delete clubCard")
+        void shouldDeleteClubCard() throws Exception {
+            ClubCardDto clubCard = ClubCardMother.getExample1();
+            clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard));
+
+            mockMvc.perform(MockMvcRequestBuilders.delete("/api/club-cards/1")).andExpect(status().isOk());
         }
     }
 
@@ -172,10 +281,10 @@ class ProductServiceApplicationTests {
         @Test
         @DisplayName("Can calculate discount")
         void shouldCalculateDiscount() throws Exception {
-            PromotionDto promotion1 = PromotionMother.getValidExample1();
-            PromotionDto promotion2 = PromotionMother.getValidExample2();
-            PromotionDto promotion3 = PromotionMother.getValidExample3();
-            PromotionDto promotion4 = PromotionMother.getValidExample4();
+            PromotionDto promotion1 = PromotionMother.getExample1();
+            PromotionDto promotion2 = PromotionMother.getExample2();
+            PromotionDto promotion3 = PromotionMother.getExample3();
+            PromotionDto promotion4 = PromotionMother.getExample4();
 
             promotionRepository.save(PromotionMapper.mapToEntity(promotion1));
             promotionRepository.save(PromotionMapper.mapToEntity(promotion2));
@@ -190,7 +299,7 @@ class ProductServiceApplicationTests {
             discountsData.add(new CalculateDiscountResponse.DiscountData(5L, BigDecimal.valueOf(0.0f).setScale(2, RoundingMode.HALF_UP), null));
             CalculateDiscountResponse expectedResponse = new CalculateDiscountResponse(discountsData);
 
-            CalculateDiscountRequest request = CalculateDiscountRequestMother.getValidExample(true, "11111");
+            CalculateDiscountRequest request = CalculateDiscountRequestMother.getExample(true, "11111");
             String requestJson = objectMapper.writeValueAsString(request);
 
             MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/promotions/calculate-discount")
