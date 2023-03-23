@@ -23,6 +23,7 @@ public class PromotionMapper {
         if (entity == null)
             return null;
         return new PromotionDto(
+                entity.getId(),
                 entity.getName(),
                 entity.getClubCardRequired(),
                 entity.getCode(),

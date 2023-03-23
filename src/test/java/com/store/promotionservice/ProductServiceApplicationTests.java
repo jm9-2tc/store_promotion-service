@@ -107,7 +107,10 @@ class ProductServiceApplicationTests {
 
             PromotionDto response = objectMapper.readValue(result.getResponse().getContentAsString(), PromotionDto.class);
 
-            assertThat(response).isEqualTo(promotion);
+            assertThat(response)
+                    .usingRecursiveComparison()
+                    .ignoringFields("id")
+                    .isEqualTo(promotion);
         }
 
         @Test
@@ -126,7 +129,9 @@ class ProductServiceApplicationTests {
 
             PromotionDto[] response = objectMapper.readValue(result.getResponse().getContentAsString(), PromotionDto[].class);
 
-            assertThat(response).containsExactly(promotion1, promotion2);
+            assertThat(response)
+                    .usingRecursiveFieldByFieldElementComparatorIgnoringFields("id")
+                    .containsExactly(promotion1, promotion2);
         }
 
         // UPDATE:
@@ -266,7 +271,7 @@ class ProductServiceApplicationTests {
         // DELETE:
 
         @Test
-        @DisplayName("Can delete clubCard")
+        @DisplayName("Can delete club card")
         void shouldDeleteClubCard() throws Exception {
             ClubCardDto clubCard = ClubCardMother.getExample1();
             clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard));

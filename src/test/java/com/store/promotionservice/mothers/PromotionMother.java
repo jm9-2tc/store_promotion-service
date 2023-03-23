@@ -9,6 +9,7 @@ public class PromotionMother {
 
     public static PromotionDto getExample1() {
         return new PromotionDto(
+                null,
                 "promo 1",
                 true,
                 "11111",
@@ -22,6 +23,7 @@ public class PromotionMother {
 
     public static PromotionDto getExample2() {
         return new PromotionDto(
+                null,
                 "promo 2",
                 false,
                 null,
@@ -35,6 +37,7 @@ public class PromotionMother {
 
     public static PromotionDto getExample3() {
         return new PromotionDto(
+                null,
                 "promo 3",
                 false,
                 "abc",
@@ -48,6 +51,7 @@ public class PromotionMother {
 
     public static PromotionDto getExample4() {
         return new PromotionDto(
+                null,
                 "promo 4",
                 true,
                 null,

@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @Data
 public class PromotionDto {
+    @JsonProperty("id")
+    private Long id;
+
     @NotNull
     @JsonProperty("name")
     private String name;
