@@ -4,9 +4,13 @@ server:
 spring:
   data:
     mongodb:
-      host: "mongo"
+      host: "localhost"
       port: "27017"
       database: "store"
       authentication-database: "admin"
       username: "root"
       password: "example"
+
+logging:
+  level:
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
