@@ -2,16 +2,20 @@ package com.store.promotionservice;
 
 
 import com.store.promotionservice.model.dto.ClubCardDto;
+import com.store.promotionservice.model.dto.GiftCardDto;
 import com.store.promotionservice.model.dto.PromotionDto;
 import com.store.promotionservice.model.mappers.ClubCardMapper;
+import com.store.promotionservice.model.mappers.GiftCardMapper;
 import com.store.promotionservice.model.mappers.PromotionMapper;
 import com.store.promotionservice.model.request.CalculateDiscountRequest;
 import com.store.promotionservice.model.response.CalculateDiscountResponse;
 import com.store.promotionservice.mothers.CalculateDiscountRequestMother;
 import com.store.promotionservice.mothers.ClubCardMother;
+import com.store.promotionservice.mothers.GiftCardMother;
 import com.store.promotionservice.mothers.PromotionMother;
 
 import com.store.promotionservice.repository.ClubCardRepository;
+import com.store.promotionservice.repository.GiftCardRepository;
 import com.store.promotionservice.repository.PromotionRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +60,10 @@ class ProductServiceApplicationTests {
 
     @Autowired
     private ClubCardRepository clubCardRepository;
+
+    @Autowired
+    private GiftCardRepository giftCardRepository;
+
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry propertyRegistry) {
@@ -277,6 +285,110 @@ class ProductServiceApplicationTests {
             clubCardRepository.save(ClubCardMapper.mapToEntity(clubCard));
 
             mockMvc.perform(MockMvcRequestBuilders.delete("/api/club-cards/1")).andExpect(status().isOk());
+        }
+    }
+
+    @Nested
+    @DisplayName("Gift Cards CRUD tests")
+    class GiftCardsCrudTests {
+
+        // CREATE:
+
+        @Test
+        @DisplayName("Can create gift card")
+        void shouldCreateGiftCard() throws Exception {
+            String giftCardJson = objectMapper.writeValueAsString(GiftCardMother.getExample1());
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/gift-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(giftCardJson)
+            ).andExpect(status().isCreated());
+        }
+
+        @Test
+        @DisplayName("Reports error when creating gift card from missing data")
+        void shouldNotCreateGiftCardFromMissingData() throws Exception {
+            String giftCardJson = objectMapper.writeValueAsString(GiftCardMother.getInvalidExample());
+            mockMvc.perform(MockMvcRequestBuilders.post("/api/gift-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(giftCardJson)
+            ).andExpect(status().isBadRequest());
+        }
+
+        // READ:
+
+        @Test
+        @DisplayName("Can get gift card")
+        void shouldGetGiftCard() throws Exception {
+            GiftCardDto giftCard = GiftCardMother.getExample1();
+            long id = giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard)).getId();
+
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/gift-cards/" + id))
+                    .andExpect(status().isOk())
+                    .andReturn();
+
+            GiftCardDto response = objectMapper.readValue(result.getResponse().getContentAsString(), GiftCardDto.class);
+
+            assertThat(response).isEqualTo(giftCard);
+        }
+
+        @Test
+        @DisplayName("Can get all gift cards")
+        void shouldGetAllGiftCards() throws Exception {
+            GiftCardDto giftCard1 = GiftCardMother.getExample1();
+            GiftCardDto giftCard2 = GiftCardMother.getExample2();
+
+            giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard1));
+            giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard2));
+
+            MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/gift-cards"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$", hasSize(2)))
+                    .andReturn();
+
+            GiftCardDto[] response = objectMapper.readValue(result.getResponse().getContentAsString(), GiftCardDto[].class);
+
+            assertThat(response).containsExactly(giftCard1, giftCard2);
+        }
+
+        // UPDATE:
+
+        @Test
+        @DisplayName("Can update gift card")
+        void shouldUpdateGiftCard() throws Exception {
+            GiftCardDto giftCard = GiftCardMother.getExample1();
+            giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard));
+
+            String giftCardJson = objectMapper.writeValueAsString(giftCard);
+
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/gift-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(giftCardJson)
+            ).andExpect(status().isOk());
+        }
+
+        @Test
+        @DisplayName("Reports error when updating gift card from missing data")
+        void shouldNotUpdateGiftCardFromMissingData() throws Exception {
+            GiftCardDto giftCard = GiftCardMother.getExample1();
+            giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard));
+
+            String giftCardJson = objectMapper.writeValueAsString(GiftCardMother.getInvalidExample());
+
+            mockMvc.perform(MockMvcRequestBuilders.put("/api/gift-cards")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(giftCardJson)
+            ).andExpect(status().isBadRequest());
+        }
+
+        // DELETE:
+
+        @Test
+        @DisplayName("Can delete gift card")
+        void shouldDeleteGiftCard() throws Exception {
+            GiftCardDto giftCard = GiftCardMother.getExample1();
+            giftCardRepository.save(GiftCardMapper.mapToEntity(giftCard));
+
+            mockMvc.perform(MockMvcRequestBuilders.delete("/api/gift-cards/1")).andExpect(status().isOk());
         }
     }
 
