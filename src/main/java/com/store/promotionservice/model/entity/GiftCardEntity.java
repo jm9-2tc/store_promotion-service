@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.MongoId;
 
 import java.math.BigDecimal;
 
-@Document(collection = "promotions")
+@Document(collection = "giftcards")
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
