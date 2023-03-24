@@ -54,5 +54,6 @@ public class GiftCardsService {
         if (giftCardDto == null)
             throw new RequestProcessingException(ErrorCommunicates.entityWithIdDoesntExist("Gift card", id), HttpStatus.NOT_FOUND);
         giftCardDto.setWorth(giftCardDto.getWorth().subtract(worth).max(BigDecimal.ZERO));
+        repository.save(GiftCardMapper.mapToEntity(giftCardDto));
     }
 }
