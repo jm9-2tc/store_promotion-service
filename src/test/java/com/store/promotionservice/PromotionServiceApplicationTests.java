@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
-class ProductServiceApplicationTests {
+class PromotionServiceApplicationTests {
     @Container
     private static final MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:latest");
 
