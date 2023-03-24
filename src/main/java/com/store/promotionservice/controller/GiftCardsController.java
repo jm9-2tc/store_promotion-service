@@ -37,7 +37,7 @@ public class GiftCardsController {
     public ResponseEntity<GiftCardDto> createGiftCard(@Valid @RequestBody GiftCardDto productDto, UriComponentsBuilder builder) {
         Long id = service.createGiftCard(productDto);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(builder.path("/api/products/{id}").buildAndExpand(id).toUri());
+        headers.setLocation(builder.path("/api/gift-cards/{id}").buildAndExpand(id).toUri());
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 

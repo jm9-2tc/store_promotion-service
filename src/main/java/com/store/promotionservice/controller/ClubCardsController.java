@@ -36,7 +36,7 @@ public class ClubCardsController {
     public ResponseEntity<ClubCardDto> createClubCard(@Valid @RequestBody ClubCardDto productDto, UriComponentsBuilder builder) {
         Long id = service.createClubCard(productDto);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(builder.path("/api/products/{id}").buildAndExpand(id).toUri());
+        headers.setLocation(builder.path("/api/club-cards/{id}").buildAndExpand(id).toUri());
         return new ResponseEntity<>(headers, HttpStatus.CREATED);
     }
 
